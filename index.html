@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tacos El Parri | Sabor a la Parrilla</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Poppins:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        parri: {
+                            black: '#0d0d0d',
+                            dark: '#171717',
+                            card: '#222222',
+                            orange: '#ff5500',
+                            red: '#e60000',
+                            yellow: '#ffaa00',
+                            fire: '#ff3300'
+                        }
+                    },
+                    fontFamily: {
+                        marker: ['"Permanent Marker"', 'cursive'],
+                        sans: ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Fire & Charcoal Effects */
+        body {
+            background-color: #0a0a0a;
+            color: #f3f4f6;
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .font-marker {
+            font-family: 'Permanent Marker', cursive;
+        }
+
+        .text-glow {
+            text-shadow: 0 0 10px rgba(255, 85, 0, 0.7), 0 0 20px rgba(255, 0, 0, 0.5), 0 0 30px rgba(255, 170, 0, 0.3);
+        }
+
+        .text-glow-yellow {
+            text-shadow: 0 0 10px rgba(255, 170, 0, 0.8), 0 0 20px rgba(255, 85, 0, 0.5);
+        }
+
+        .box-glow {
+            box-shadow: 0 0 25px -5px rgba(255, 85, 0, 0.3);
+        }
+
+        .border-fire {
+            border-color: rgba(255, 85, 0, 0.4);
+        }
+
+        .border-fire:hover {
+            border-color: rgba(255, 85, 0, 0.9);
+            box-shadow: 0 0 20px rgba(255, 85, 0, 0.4);
+        }
+
+        /* Canvas Particle Background */
+        #fireCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.35;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ff5500;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff7700;
+        }
+
+        .badge-flame {
+            background: linear-gradient(135deg, #ff0000 0%, #ff5500 50%, #ffaa00 100%);
+        }
+
+        .fire-gradient-btn {
+            background: linear-gradient(90deg, #ff3300 0%, #ff5500 50%, #ff8800 100%);
+            transition: all 0.3s ease;
+        }
+
+        .fire-gradient-btn:hover {
+            background: linear-gradient(90deg, #ff0000 0%, #ff3300 50%, #ff6600 100%);
+            box-shadow: 0 0 15px rgba(255, 85, 0, 0.7);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="relative min-h-screen pb-24">
+
+    <!-- Canvas para Chispas de Fuego Animadas -->
+    <canvas id="fireCanvas"></canvas>
+
+    <!-- Header / Navbar Navigacional -->
+    <header class="sticky top-0 z-40 bg-parri-black/90 backdrop-blur-md border-b border-parri-orange/20 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                
+                <!-- Logo del negocio -->
+                <a href="#" class="flex items-center space-x-3 group">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-parri-red via-parri-orange to-parri-yellow p-0.5 shadow-lg group-hover:scale-105 transition-transform">
+                        <div class="w-full h-full bg-parri-black rounded-full flex items-center justify-center">
+                            <i class="fa-solid fa-fire text-parri-orange text-2xl group-hover:text-parri-yellow transition-colors"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-2xl sm:text-3xl font-extrabold text-white tracking-wider font-marker text-glow block leading-none">EL PARRI</span>
+                        <span class="text-xs text-parri-yellow tracking-widest font-semibold uppercase">Tacos & Grill</span>
+                    </div>
+                </a>
+
+                <!-- Estado Abierto/Cerrado en tiempo real -->
+                <div class="hidden md:flex items-center bg-parri-dark px-4 py-2 rounded-full border border-gray-800">
+                    <span id="statusIndicator" class="w-3 h-3 rounded-full bg-red-500 animate-pulse mr-2.5"></span>
+                    <span id="statusText" class="text-xs font-semibold uppercase tracking-wider text-gray-300">Comprobando horario...</span>
+                </div>
+
+                <!-- Botones Rápidos de Acción -->
+                <div class="flex items-center space-x-3">
+                    <button onclick="toggleCartModal()" class="relative fire-gradient-btn text-white px-4 py-2.5 rounded-xl font-bold flex items-center shadow-lg text-sm sm:text-base">
+                        <i class="fa-solid fa-cart-shopping mr-2"></i>
+                        <span class="hidden sm:inline">Mi Pedido</span>
+                        <span id="cartCountBadge" class="ml-2 bg-black text-parri-yellow text-xs font-extrabold px-2 py-0.5 rounded-full border border-parri-orange">0</span>
+                    </button>
+                    
+                    <a href="tel:8120357540" class="bg-parri-card hover:bg-gray-800 text-parri-yellow p-2.5 rounded-xl border border-parri-orange/30 transition text-sm flex items-center justify-center" title="Llamar directo">
+                        <i class="fa-solid fa-phone text-lg"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banner de estado móvil -->
+        <div class="md:hidden bg-parri-dark/95 border-t border-gray-800 py-1 px-4 text-center text-xs flex items-center justify-center">
+            <span id="statusIndicatorMobile" class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse mr-2"></span>
+            <span id="statusTextMobile" class="text-gray-300 font-medium">Comprobando horario...</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+
+        <!-- Hero Banner principal -->
+        <section class="relative rounded-3xl overflow-hidden bg-gradient-to-r from-parri-black via-parri-dark to-parri-black border border-parri-orange/30 p-6 sm:p-10 mb-10 box-glow">
+            <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#ff5500_1px,transparent_1px)] [background-size:16px_16px]"></div>
+            
+            <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-7 space-y-4 text-center lg:text-left">
+                    <div class="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold badge-flame text-white uppercase tracking-wider shadow-md">
+                        <i class="fa-solid fa-fire-flame-curved mr-2"></i> 100% Sabor Norteño a la Parrilla
+                    </div>
+                    
+                    <h1 class="text-4xl sm:text-6xl font-black text-white font-marker tracking-wide text-glow leading-tight">
+                        TACOS EL PARRI
+                    </h1>
+                    
+                    <p class="text-lg sm:text-xl text-gray-300 font-medium italic">
+                        "Sabor a la parrilla • Pedidos al momento • Sabor auténtico"
+                    </p>
+
+                    <p class="text-sm text-gray-400">
+                        <i class="fa-solid fa-clock text-parri-orange mr-1.5"></i> Martes a Domingo de 7:00 p.m. a 1:00 a.m.
+                    </p>
+
+                    <!-- CTA Buttons -->
+                    <div class="pt-4 flex flex-wrap gap-3 justify-center lg:justify-start">
+                        <a href="#menuSection" class="fire-gradient-btn text-white px-6 py-3.5 rounded-2xl font-extrabold text-base flex items-center shadow-lg">
+                            <i class="fa-solid fa-utensils mr-2"></i> Ver Menú Completo
+                        </a>
+                        <a href="#contactoSection" class="bg-parri-card hover:bg-gray-800 text-white px-5 py-3.5 rounded-2xl font-bold text-base border border-gray-700 transition flex items-center">
+                            <i class="fa-solid fa-location-dot mr-2 text-parri-orange"></i> Info & Pagos
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Tarjeta de Producto Destacado / Especialidad -->
+                <div class="lg:col-span-5">
+                    <div class="bg-gradient-to-br from-parri-dark to-parri-card p-5 rounded-2xl border-2 border-parri-orange/60 relative overflow-hidden group hover:border-parri-yellow transition-all duration-300">
+                        <div class="absolute top-3 right-3 bg-parri-red text-white text-xs font-black uppercase px-3 py-1 rounded-full animate-bounce">
+                            ★ La Especialidad
+                        </div>
+                        <div class="text-parri-yellow font-marker text-2xl mb-1">PAPA BORRACHA</div>
+                        <p class="text-gray-300 text-xs sm:text-sm mb-3">
+                            Papa asada con carne asada, campechana o alambre, jamón, salchicha, aguacate, galletas, tostaditas y jalapeños.
+                        </p>
+                        <div class="flex items-center justify-between mt-4 pt-3 border-t border-gray-800">
+                            <div>
+                                <span class="text-xs text-gray-400 block">Precio especial</span>
+                                <span class="text-2xl font-black text-parri-yellow">$190.00</span>
+                            </div>
+                            <button onclick="addSpecialPapaBorracha()" class="fire-gradient-btn text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center">
+                                <i class="fa-solid fa-plus mr-1.5"></i> Pedir Especial
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Promociones Destacadas Banner Carousel/Grid -->
+        <section class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white font-marker flex items-center text-glow">
+                    <i class="fa-solid fa-bolt text-parri-yellow mr-3"></i> PROMOCIONES DE LA CASA
+                </h2>
+                <span class="text-xs text-parri-yellow bg-parri-dark border border-parri-orange/30 px-3 py-1 rounded-full font-semibold">
+                    Aplica Todos Los Días
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <!-- Combo 1 -->
+                <div class="bg-parri-dark rounded-2xl p-5 border border-parri-orange/30 relative flex flex-col justify-between hover:border-parri-orange transition-all duration-300">
+                    <span class="absolute top-3 right-3 bg-parri-orange/20 text-parri-yellow border border-parri-orange text-xs font-bold px-2.5 py-0.5 rounded-full">COMBO 1</span>
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-1">Hamburguesa Especial</h3>
+                        <p class="text-xs text-gray-400 mb-4">Incluye Papas a la francesa y Refresco frío.</p>
+                    </div>
+                    <div class="flex items-center justify-between pt-3 border-t border-gray-800">
+                        <span class="text-xl font-extrabold text-parri-yellow">$130.00</span>
+                        <button onclick="addToCart('Combo 1: Hamb. Especial + Papas + Refresco', 130)" class="bg-parri-orange/20 hover:bg-parri-orange text-parri-yellow hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center border border-parri-orange/50">
+                            <i class="fa-solid fa-plus mr-1"></i> Agregar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Combo 2 -->
+                <div class="bg-parri-dark rounded-2xl p-5 border border-parri-orange/30 relative flex flex-col justify-between hover:border-parri-orange transition-all duration-300">
+                    <span class="absolute top-3 right-3 bg-parri-orange/20 text-parri-yellow border border-parri-orange text-xs font-bold px-2.5 py-0.5 rounded-full">COMBO 2</span>
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-1">Hamburguesa a Elegir</h3>
+                        <p class="text-xs text-gray-400 mb-4">Elegible + Papas a la francesa + Refresco frío.</p>
+                    </div>
+                    <div class="flex items-center justify-between pt-3 border-t border-gray-800">
+                        <span class="text-xl font-extrabold text-parri-yellow">$150.00</span>
+                        <button onclick="openCustomComboModal()" class="bg-parri-orange/20 hover:bg-parri-orange text-parri-yellow hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center border border-parri-orange/50">
+                            <i class="fa-solid fa-plus mr-1"></i> Elegir
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Promo Tacos -->
+                <div class="bg-parri-dark rounded-2xl p-5 border border-parri-orange/30 relative flex flex-col justify-between hover:border-parri-orange transition-all duration-300">
+                    <span class="absolute top-3 right-3 bg-parri-red/30 text-red-400 border border-parri-red text-xs font-bold px-2.5 py-0.5 rounded-full">SUPER PROMO</span>
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-1">2 Órdenes de Trompo</h3>
+                        <p class="text-xs text-gray-400 mb-4">Auténtico sabor al pastor con sus salsas y verduras.</p>
+                    </div>
+                    <div class="flex items-center justify-between pt-3 border-t border-gray-800">
+                        <span class="text-xl font-extrabold text-parri-yellow">$220.00</span>
+                        <button onclick="addToCart('PROMO: 2 Órdenes de Trompo', 220)" class="bg-parri-orange/20 hover:bg-parri-orange text-parri-yellow hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center border border-parri-orange/50">
+                            <i class="fa-solid fa-plus mr-1"></i> Agregar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Salchitacos -->
+                <div class="bg-parri-dark rounded-2xl p-5 border border-parri-orange/30 relative flex flex-col justify-between hover:border-parri-orange transition-all duration-300">
+                    <span class="absolute top-3 right-3 bg-parri-yellow/20 text-parri-yellow border border-parri-yellow text-xs font-bold px-2.5 py-0.5 rounded-full">POPULAR</span>
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-1">Salchitacos c/Queso</h3>
+                        <p class="text-xs text-gray-400 mb-4">Salchicha asada a la parrilla con queso derretido.</p>
+                    </div>
+                    <div class="flex items-center justify-between pt-3 border-t border-gray-800">
+                        <span class="text-xl font-extrabold text-parri-yellow">$140.00</span>
+                        <button onclick="openTortillaModal('Salchitacos c/Queso', 140)" class="bg-parri-orange/20 hover:bg-parri-orange text-parri-yellow hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center border border-parri-orange/50">
+                            <i class="fa-solid fa-plus mr-1"></i> Agregar
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Filtros de Menú e Interactividad -->
+        <section id="menuSection" class="scroll-mt-24 mb-16">
+            
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                    <h2 class="text-3xl font-black text-white font-marker tracking-wide text-glow">
+                        NUESTRO MENÚ COMPLETO
+                    </h2>
+                    <p class="text-xs text-gray-400">Selecciona una categoría y arma tu pedido fácilmente.</p>
+                </div>
+
+                <!-- Buscador de Platillos -->
+                <div class="relative w-full md:w-72">
+                    <i class="fa-solid fa-search absolute left-3.5 top-3.5 text-gray-500 text-sm"></i>
+                    <input type="text" id="searchInput" oninput="filterMenu()" placeholder="Buscar tacos, papas, combos..." class="w-full bg-parri-dark border border-gray-800 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-parri-orange transition">
+                </div>
+            </div>
+
+            <!-- Botones de Categorías -->
+            <div class="flex overflow-x-auto no-scrollbar space-x-2 pb-4 mb-6" id="categoryContainer">
+                <button onclick="setCategory('all')" class="cat-btn active bg-parri-orange text-white px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition shadow-lg">
+                    🔥 Todos
+                </button>
+                <button onclick="setCategory('tacos')" class="cat-btn bg-parri-dark text-gray-300 hover:text-white border border-gray-800 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition">
+                    🌮 Tacos
+                </button>
+                <button onclick="setCategory('piratas')" class="cat-btn bg-parri-dark text-gray-300 hover:text-white border border-gray-800 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition">
+                    🌯 Piratas y Gringas
+                </button>
+                <button onclick="setCategory('hamburguesas')" class="cat-btn bg-parri-dark text-gray-300 hover:text-white border border-gray-800 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition">
+                    🍔 Hamburguesas
+                </button>
+                <button onclick="setCategory('papas')" class="cat-btn bg-parri-dark text-gray-300 hover:text-white border border-gray-800 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition">
+                    🥔 Papas Asadas
+                </button>
+                <button onclick="setCategory('hotdogs')" class="cat-btn bg-parri-dark text-gray-300 hover:text-white border border-gray-800 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition">
+                    🌭 Hot Dogs
+                </button>
+                <button onclick="setCategory('tostadas')" class="cat-btn bg-parri-dark text-gray-300 hover:text-white border border-gray-800 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition">
+                    🌮 Tostadas
+                </button>
+                <button onclick="setCategory('kids')" class="cat-btn bg-parri-dark text-gray-300 hover:text-white border border-gray-800 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition">
+                    🎈 Menú Kids
+                </button>
+            </div>
+
+            <!-- Grid de Productos -->
+            <div id="menuGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Se poblará dinámicamente con JS -->
+            </div>
+        </section>
+
+        <!-- Información de Contacto, Pagos y Servicio -->
+        <section id="contactoSection" class="scroll-mt-24 mb-12">
+            <div class="bg-gradient-to-b from-parri-dark to-parri-card rounded-3xl p-6 sm:p-10 border border-parri-orange/30 box-glow">
+                
+                <div class="text-center max-w-2xl mx-auto mb-10">
+                    <h2 class="text-3xl font-black text-white font-marker tracking-wide text-glow">
+                        PEDIDOS Y FORMAS DE PAGO
+                    </h2>
+                    <p class="text-gray-400 text-sm mt-1">¡Llevamos el auténtico sabor a la parrilla directo a tu puerta o listo para pasar a recoger!</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <!-- Horario -->
+                    <div class="bg-parri-black/60 p-6 rounded-2xl border border-gray-800 text-center">
+                        <div class="w-12 h-12 rounded-full bg-parri-orange/20 text-parri-orange flex items-center justify-center text-xl mx-auto mb-4 border border-parri-orange/30">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Horario de Atención</h3>
+                        <p class="text-sm text-parri-yellow font-semibold">Martes a Domingo</p>
+                        <p class="text-xs text-gray-400 mt-1">7:00 p.m. a 1:00 a.m.</p>
+                        <p class="text-xs text-red-400 mt-2 font-medium">Lunes: Cerrado</p>
+                    </div>
+
+                    <!-- Teléfonos / Pedidos -->
+                    <div class="bg-parri-black/60 p-6 rounded-2xl border border-gray-800 text-center">
+                        <div class="w-12 h-12 rounded-full bg-parri-orange/20 text-parri-orange flex items-center justify-center text-xl mx-auto mb-4 border border-parri-orange/30">
+                            <i class="fa-solid fa-motorcycle"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Servicio a Domicilio</h3>
+                        <p class="text-xs text-gray-400 mb-3">Llámanos o envía un mensaje directo:</p>
+                        <div class="space-y-1.5">
+                            <a href="tel:8120357540" class="block text-sm font-extrabold text-parri-yellow hover:underline">
+                                <i class="fa-solid fa-phone text-xs mr-1"></i> 812-035-7540
+                            </a>
+                            <a href="tel:8128966112" class="block text-sm font-extrabold text-parri-yellow hover:underline">
+                                <i class="fa-solid fa-phone text-xs mr-1"></i> 812-896-6112
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Formas de Pago -->
+                    <div class="bg-parri-black/60 p-6 rounded-2xl border border-gray-800 text-center">
+                        <div class="w-12 h-12 rounded-full bg-parri-orange/20 text-parri-orange flex items-center justify-center text-xl mx-auto mb-4 border border-parri-orange/30">
+                            <i class="fa-solid fa-wallet"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Formas de Pago</h3>
+                        <div class="flex justify-center space-x-3 text-2xl text-gray-300 my-2">
+                            <i class="fa-solid fa-money-bill-wave text-green-500" title="Efectivo"></i>
+                            <i class="fa-solid fa-building-columns text-blue-400" title="Transferencia"></i>
+                            <i class="fa-solid fa-credit-card text-purple-400" title="Tarjeta"></i>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">Aceptamos Efectivo, Tarjeta y Transferencia Bancaria (Banorte).</p>
+                    </div>
+
+                </div>
+
+                <!-- Detalle BANORTE -->
+                <div class="mt-8 bg-parri-black/80 p-4 rounded-xl border border-parri-orange/30 text-center max-w-xl mx-auto">
+                    <div class="text-xs text-gray-400 uppercase tracking-widest font-bold">Datos para Transferencias (Banorte)</div>
+                    <div class="text-parri-yellow text-lg font-mono font-bold mt-1 tracking-wider">0725 8001 1969 701822</div>
+                    <div class="text-xs text-gray-500 mt-0.5">Roberto Hernández</div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-parri-black border-t border-gray-800 text-center py-6 text-xs text-gray-500 relative z-10">
+        <p>© <span id="currentYear"></span> Tacos El Parri / Tacos El Parry - Todos los derechos reservados.</p>
+        <p class="mt-1 text-gray-600">Sabor a la Parrilla • Pedidos al Momento</p>
+    </footer>
+
+    <!-- MODAL CARRITO / RESUMEN DE PEDIDO -->
+    <div id="cartModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-parri-dark border border-parri-orange/40 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            
+            <!-- Modal Header -->
+            <div class="bg-parri-black p-5 border-b border-gray-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-fire text-parri-orange text-xl"></i>
+                    <h3 class="text-xl font-bold text-white font-marker">Tu Pedido</h3>
+                </div>
+                <button onclick="toggleCartModal()" class="text-gray-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content / Item List -->
+            <div class="p-5 overflow-y-auto flex-1 space-y-3" id="cartItemsList">
+                <!-- Se llena dinámicamente -->
+            </div>
+
+            <!-- Modal Footer / Total & Checkout -->
+            <div class="bg-parri-black p-5 border-t border-gray-800 space-y-4">
+                
+                <!-- Opciones de Entrega -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Método de entrega:</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="btnDelivery" onclick="setDeliveryType('domicilio')" class="py-2 text-xs font-bold rounded-lg border border-parri-orange bg-parri-orange text-white">
+                            <i class="fa-solid fa-motorcycle mr-1"></i> A Domicilio
+                        </button>
+                        <button id="btnPickup" onclick="setDeliveryType('passar')" class="py-2 text-xs font-bold rounded-lg border border-gray-700 bg-parri-card text-gray-300">
+                            <i class="fa-solid fa-bag-shopping mr-1"></i> Pasar por él
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Input Nombre / Nota -->
+                <div class="space-y-2">
+                    <input type="text" id="clientName" placeholder="Tu Nombre" class="w-full bg-parri-card border border-gray-800 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-parri-orange">
+                    <input type="text" id="clientAddress" placeholder="Dirección / Referencias de entrega" class="w-full bg-parri-card border border-gray-800 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-parri-orange">
+                </div>
+
+                <!-- Resumen Total -->
+                <div class="flex items-center justify-between pt-2">
+                    <span class="text-sm font-bold text-gray-300">Total acumulado:</span>
+                    <span id="cartTotalPrice" class="text-2xl font-black text-parri-yellow">$0.00</span>
+                </div>
+
+                <!-- Botones Enviar WhatsApp -->
+                <div class="grid grid-cols-2 gap-2 pt-2">
+                    <button onclick="sendWhatsApp(1)" class="bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-bold text-xs flex items-center justify-center shadow-lg transition">
+                        <i class="fa-brands fa-whatsapp text-base mr-1.5"></i> Pedir Tel 1
+                    </button>
+                    <button onclick="sendWhatsApp(2)" class="bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-bold text-xs flex items-center justify-center shadow-lg transition">
+                        <i class="fa-brands fa-whatsapp text-base mr-1.5"></i> Pedir Tel 2
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL OPCIONES TIPO TORTILLA / DETALLES -->
+    <div id="optionModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-parri-dark border border-parri-orange/40 rounded-3xl w-full max-w-sm p-6 space-y-4">
+            <h3 id="optionModalTitle" class="text-lg font-bold text-white font-marker">Selecciona opción</h3>
+            <p id="optionModalDesc" class="text-xs text-gray-400">Elige los detalles para tu platillo:</p>
+            
+            <div id="optionContainer" class="space-y-2">
+                <!-- Se llena con JS -->
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-4 border-t border-gray-800">
+                <button onclick="closeOptionModal()" class="px-4 py-2 bg-gray-800 text-gray-300 rounded-xl text-xs font-bold">Cancelar</button>
+                <button id="confirmOptionBtn" class="px-4 py-2 fire-gradient-btn text-white rounded-xl text-xs font-bold">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APP LOGIC -->
+    <script>
+        // --- BASE DE DATOS DEL MENÚ COMPLETO ---
+        const menuData = [
+            // TACOS
+            { id: 101, name: 'Ord. de Tacos de Carne Asada', category: 'tacos', price: 125.00, desc: '4 tacos de jugosa carne asada a la parrilla.', hasTortilla: true },
+            { id: 102, name: 'Ord. de Tacos de Trompo', category: 'tacos', price: 120.00, desc: '4 tacos de carne al pastor/trompo estilo tradicional.', hasTortilla: true },
+            { id: 103, name: 'Ord. de Tacos de Alambre', category: 'tacos', price: 125.00, desc: '4 tacos con combinación de carnes, pimiento y cebolla.', hasTortilla: true },
+            { id: 104, name: 'Ord. de Tacos Mixta', category: 'tacos', price: 125.00, desc: '4 tacos mixtos con la selección perfecta.', hasTortilla: true },
+            { id: 105, name: 'Ord. de Salchitacos c/Queso', category: 'tacos', price: 140.00, desc: 'Tacos de salchicha asada gratinada con queso.', hasTortilla: true },
+
+            // PIRATAS, GRINGAS Y CAMPECHANAS
+            { id: 201, name: 'Pirata Grande', category: 'piratas', price: 135.00, desc: 'Queso, carne asada y aguacate en tortilla grande.' },
+            { id: 202, name: 'Pirata de Alambre Gde.', category: 'piratas', price: 135.00, desc: 'Queso, alambre especial y aguacate.' },
+            { id: 203, name: 'Campechana Grande', category: 'piratas', price: 130.00, desc: 'Mezcla perfecta de Asada y Trompo con queso.' },
+            { id: 204, name: 'Gringa Grande', category: 'piratas', price: 125.00, desc: 'Carne de trompo con queso derretido en harina.' },
+            { id: 205, name: 'Pirata Mediana', category: 'piratas', price: 110.00, desc: 'Tamaño mediano con queso, asada y aguacate.' },
+            { id: 206, name: 'Campechana Mediana', category: 'piratas', price: 105.00, desc: 'Tamaño mediano combinación asada y trompo.' },
+            { id: 207, name: 'Gringa Mediana', category: 'piratas', price: 100.00, desc: 'Tamaño mediano carne de trompo y queso.' },
+            { id: 208, name: 'De Alambre Mediana', category: 'piratas', price: 110.00, desc: 'Alambre especial en tamaño mediano.' },
+            { id: 209, name: 'Ord. de Piratitas de Alambre', category: 'piratas', price: 135.00, desc: 'Orden de piratitas individuales con alambre.', hasTortilla: true },
+            { id: 210, name: 'Ord. de Piratitas', category: 'piratas', price: 135.00, desc: 'Orden de piratitas de carne asada y queso.', hasTortilla: true },
+            { id: 211, name: 'Ord. de Gringuitas', category: 'piratas', price: 125.00, desc: 'Orden de mini gringas de trompo y queso.', hasTortilla: true },
+            { id: 212, name: 'Ord. de Campechanitas', category: 'piratas', price: 130.00, desc: 'Orden de mini campechanas.', hasTortilla: true },
+
+            // HAMBURGUESAS
+            { id: 301, name: 'Hamburguesa Especial', category: 'hamburguesas', price: 75.00, pricePapas: 105.00, desc: 'Con carne de res, aderezo, jamón y queso.', isBurger: true },
+            { id: 302, name: 'Hamburguesa Norteña', category: 'hamburguesas', price: 100.00, pricePapas: 130.00, desc: 'Con carne asada, jamón y queso derretido.', isBurger: true },
+            { id: 303, name: 'Hamburguesa Campechana', category: 'hamburguesas', price: 100.00, pricePapas: 130.00, desc: 'Mezcla de asada, trompo y abundante queso.', isBurger: true },
+            { id: 304, name: 'Trompoburguer', category: 'hamburguesas', price: 100.00, pricePapas: 130.00, desc: 'Cargada con carne de trompo al pastor.', isBurger: true },
+            { id: 305, name: 'Salchiburguer', category: 'hamburguesas', price: 100.00, pricePapas: 130.00, desc: 'Con salchicha asada a la parrilla y queso.', isBurger: true },
+            { id: 306, name: 'Hamburguesa Hawaiana', category: 'hamburguesas', price: 100.00, pricePapas: 130.00, desc: 'Con piña asada, jamón y queso derretido.', isBurger: true },
+            { id: 307, name: 'Hamburguesa Doble', category: 'hamburguesas', price: 100.00, pricePapas: 130.00, desc: 'Doble carne de res, queso, jamón y aderezos.', isBurger: true },
+
+            // PAPAS ASADAS
+            { id: 401, name: 'Papa Borracha (ESPECIALIDAD)', category: 'papas', price: 190.00, desc: 'Papa asada, elige carne asada, campechana o alambre, con jamón, salchicha, aguacate, galletas, tostaditas y jalapeños.', isPapaBorracha: true },
+            { id: 402, name: 'Papa Asada Sencilla', category: 'papas', price: 115.00, desc: 'Papa con mantequilla, queso y crema.' },
+            { id: 403, name: 'Papa Asada con Carne Asada', category: 'papas', price: 145.00, desc: 'Cargada con abundante carne asada.' },
+            { id: 404, name: 'Papa Asada Campechana', category: 'papas', price: 140.00, desc: 'Con combinación de carne asada y trompo.' },
+            { id: 405, name: 'Papa Asada con Trompo', category: 'papas', price: 135.00, desc: 'Con deliciosa carne al pastor.' },
+            { id: 406, name: 'Orden de Papas a la Francesa', category: 'papas', price: 70.00, desc: 'Crujientes papas fritas (1/2 Orden por $35.00)', hasHalfOption: true },
+            { id: 407, name: 'Orden de Papas Preparadas', category: 'papas', price: 100.00, desc: 'Papas con queso fundido y aderezos especiales.' },
+
+            // HOT DOGS Y SALCHICHAS
+            { id: 501, name: 'Hotdog Sencillo', category: 'hotdogs', price: 50.00, desc: 'Con aderezo, salchicha roja a la parrilla, queso y jamón.' },
+            { id: 502, name: 'Hotdog Especial', category: 'hotdogs', price: 75.00, desc: 'Con aderezo, salchicha roja, queso, jamón, aguacate, cebolla fresca y cebolla asada.' },
+            { id: 503, name: 'Salchicha Asada con Queso', category: 'hotdogs', price: 30.00, desc: 'Salchicha roja a la parrilla cubierta de queso.' },
+
+            // TOSTADAS
+            { id: 601, name: 'Tostada de Carne Asada', category: 'tostadas', price: 55.00, desc: 'Tostada crujiente con frijolitos, asada y queso.' },
+            { id: 602, name: 'Tostada Campechana', category: 'tostadas', price: 55.00, desc: 'Mezcla de asada y trompo sobre tostada.' },
+            { id: 603, name: 'Tostada de Trompo', category: 'tostadas', price: 55.00, desc: 'Tostada de carne al pastor.' },
+            { id: 604, name: 'Tostada de Alambre', category: 'tostadas', price: 55.00, desc: 'Tostada con combinación de alambre.' },
+
+            // MENÚ KIDS
+            { id: 701, name: 'Mini Papa Sencilla', category: 'kids', price: 60.00, desc: 'Porción infantil de papa asada con queso.' },
+            { id: 702, name: 'Mini Papa c/ Carne Asada, Trompo o Campechana', category: 'kids', price: 80.00, desc: 'Porción infantil de papa asada con guiso a elegir.', isKidsPapa: true },
+            { id: 703, name: 'Sincronizada c/ Queso y Jamón', category: 'kids', price: 25.00, desc: 'Tortilla de harina con queso y jamón.' },
+            { id: 704, name: 'Quesadilla Mediana', category: 'kids', price: 35.00, desc: 'Quesadilla de queso derretido en tortilla caliente.' }
+        ];
+
+        // --- ESTADO GLOBAL Y CARRITO ---
+        let cart = [];
+        let currentCategory = 'all';
+        let deliveryType = 'domicilio'; // 'domicilio' o 'passar'
+
+        // --- COMPROBACIÓN DE HORARIO DE ATENCIÓN ---
+        function checkOpeningStatus() {
+            const now = new Date();
+            const day = now.getDay(); // 0: Domingo, 1: Lunes, 2: Martes, ...
+            const hour = now.getHours();
+
+            // Martes (2) a Domingo (0). Lunes (1) cerrado.
+            // Horario: 7:00 PM (19 hrs) a 1:00 AM (1 hrs)
+            let isOpen = false;
+
+            if (day !== 1) { // Si NO es Lunes
+                if (hour >= 19 || hour < 1) {
+                    isOpen = true;
+                }
+            }
+
+            const statusDot = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            const statusDotM = document.getElementById('statusIndicatorMobile');
+            const statusTextM = document.getElementById('statusTextMobile');
+
+            if (isOpen) {
+                const badgeHTML = `<span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2 animate-pulse"></span> <span class="text-emerald-400 font-bold">¡ABIERTO AHORA! Pedidos activos</span>`;
+                statusDot.className = "w-3 h-3 rounded-full bg-emerald-500 animate-pulse mr-2.5";
+                statusText.innerHTML = "<span class='text-emerald-400 font-bold'>¡ABIERTO AHORA!</span> Pedidos activos";
+                statusTextM.innerHTML = "<span class='text-emerald-400 font-bold'>¡ABIERTO AHORA!</span> Pedidos activos";
+            } else {
+                statusDot.className = "w-3 h-3 rounded-full bg-red-500 mr-2.5";
+                statusText.innerHTML = "<span class='text-red-400 font-bold'>CERRADO</span> • Abrimos a las 7:00 p.m.";
+                statusTextM.innerHTML = "<span class='text-red-400 font-bold'>CERRADO</span> • Abrimos a las 7:00 p.m.";
+            }
+        }
+
+        // --- RENDERIZAR MENÚ COMPLETO ---
+        function renderMenu() {
+            const grid = document.getElementById('menuGrid');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+
+            grid.innerHTML = '';
+
+            const filtered = menuData.filter(item => {
+                const matchesCat = (currentCategory === 'all') || (item.category === currentCategory);
+                const matchesSearch = item.name.toLowerCase().includes(searchVal) || item.desc.toLowerCase().includes(searchVal);
+                return matchesCat && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12 text-gray-500">
+                        <i class="fa-solid fa-stroopwafel text-4xl mb-3 text-parri-orange/40"></i>
+                        <p class="text-base font-bold">No se encontraron platillos con esa búsqueda.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-parri-dark border border-gray-800 rounded-2xl p-5 flex flex-col justify-between border-fire transition-all duration-300";
+
+                let actionButtonHTML = '';
+
+                if (item.isBurger) {
+                    actionButtonHTML = `
+                        <div class="flex gap-2 w-full mt-3">
+                            <button onclick="addToCart('${item.name} (Sola)', ${item.price})" class="flex-1 bg-parri-card hover:bg-gray-800 text-gray-200 border border-gray-700 py-1.5 rounded-xl text-xs font-bold transition">
+                                Sola $${item.price}
+                            </button>
+                            <button onclick="addToCart('${item.name} (Con Papas)', ${item.pricePapas})" class="flex-1 fire-gradient-btn text-white py-1.5 rounded-xl text-xs font-bold transition shadow-md">
+                                C/Papas $${item.pricePapas}
+                            </button>
+                        </div>
+                    `;
+                } else if (item.hasTortilla) {
+                    actionButtonHTML = `
+                        <button onclick="openTortillaModal('${item.name}', ${item.price})" class="w-full mt-3 fire-gradient-btn text-white py-2 rounded-xl text-xs font-bold transition shadow-md flex items-center justify-center">
+                            <i class="fa-solid fa-plus mr-1.5"></i> Agregar ($${item.price.toFixed(2)})
+                        </button>
+                    `;
+                } else if (item.isPapaBorracha) {
+                    actionButtonHTML = `
+                        <button onclick="addSpecialPapaBorracha()" class="w-full mt-3 fire-gradient-btn text-white py-2 rounded-xl text-xs font-bold transition shadow-md flex items-center justify-center">
+                            <i class="fa-solid fa-plus mr-1.5"></i> Personalizar Carne ($190.00)
+                        </button>
+                    `;
+                } else if (item.isKidsPapa) {
+                    actionButtonHTML = `
+                        <button onclick="openKidsPapaModal()" class="w-full mt-3 fire-gradient-btn text-white py-2 rounded-xl text-xs font-bold transition shadow-md flex items-center justify-center">
+                            <i class="fa-solid fa-plus mr-1.5"></i> Elegir Guiso ($80.00)
+                        </button>
+                    `;
+                } else if (item.hasHalfOption) {
+                    actionButtonHTML = `
+                        <div class="flex gap-2 w-full mt-3">
+                            <button onclick="addToCart('1/2 Orden Papas Francesa', 35)" class="flex-1 bg-parri-card hover:bg-gray-800 text-gray-200 border border-gray-700 py-1.5 rounded-xl text-xs font-bold">
+                                1/2 Ord $35
+                            </button>
+                            <button onclick="addToCart('Orden Papas Francesa', 70)" class="flex-1 fire-gradient-btn text-white py-1.5 rounded-xl text-xs font-bold shadow-md">
+                                Orden $70
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    actionButtonHTML = `
+                        <button onclick="addToCart('${item.name}', ${item.price})" class="w-full mt-3 fire-gradient-btn text-white py-2 rounded-xl text-xs font-bold transition shadow-md flex items-center justify-center">
+                            <i class="fa-solid fa-plus mr-1.5"></i> Agregar ($${item.price.toFixed(2)})
+                        </button>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="text-base font-bold text-white">${item.name}</h3>
+                            ${!item.isBurger && !item.hasHalfOption ? `<span class="text-sm font-extrabold text-parri-yellow ml-2">$${item.price.toFixed(2)}</span>` : ''}
+                        </div>
+                        <p class="text-xs text-gray-400 mb-2">${item.desc}</p>
+                    </div>
+                    ${actionButtonHTML}
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // --- FILTROS Y BÚSQUEDA ---
+        function setCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('bg-parri-orange', 'text-white', 'active');
+                btn.classList.add('bg-parri-dark', 'text-gray-300');
+            });
+
+            event.currentTarget.classList.remove('bg-parri-dark', 'text-gray-300');
+            event.currentTarget.classList.add('bg-parri-orange', 'text-white', 'active');
+
+            renderMenu();
+        }
+
+        function filterMenu() {
+            renderMenu();
+        }
+
+        // --- MODALES PERSONALIZADOS DE OPCIONES ---
+        function openTortillaModal(itemName, price) {
+            const modal = document.getElementById('optionModal');
+            document.getElementById('optionModalTitle').innerText = itemName;
+            document.getElementById('optionModalDesc').innerText = 'Selecciona el tipo de tortilla:';
+
+            const container = document.getElementById('optionContainer');
+            container.innerHTML = `
+                <label class="flex items-center space-x-3 bg-parri-card p-3 rounded-xl border border-gray-800 cursor-pointer">
+                    <input type="radio" name="tortillaOpt" value="Harina" checked class="text-parri-orange focus:ring-0">
+                    <span class="text-sm font-bold text-gray-200">Tortilla de Harina</span>
+                </label>
+                <label class="flex items-center space-x-3 bg-parri-card p-3 rounded-xl border border-gray-800 cursor-pointer">
+                    <input type="radio" name="tortillaOpt" value="Maíz" class="text-parri-orange focus:ring-0">
+                    <span class="text-sm font-bold text-gray-200">Tortilla de Maíz</span>
+                </label>
+            `;
+
+            document.getElementById('confirmOptionBtn').onclick = function() {
+                const selected = document.querySelector('input[name="tortillaOpt"]:checked').value;
+                addToCart(`${itemName} (${selected})`, price);
+                closeOptionModal();
+            };
+
+            modal.classList.remove('hidden');
+        }
+
+        function addSpecialPapaBorracha() {
+            const modal = document.getElementById('optionModal');
+            document.getElementById('optionModalTitle').innerText = 'Papa Borracha (Especialidad)';
+            document.getElementById('optionModalDesc').innerText = 'Elige tu guiso/carne principal:';
+
+            const container = document.getElementById('optionContainer');
+            container.innerHTML = `
+                <label class="flex items-center space-x-3 bg-parri-card p-3 rounded-xl border border-gray-800 cursor-pointer">
+                    <input type="radio" name="carnePapa" value="Carne Asada" checked class="text-parri-orange focus:ring-0">
+                    <span class="text-sm font-bold text-gray-200">Carne Asada</span>
+                </label>
+                <label class="flex items-center space-x-3 bg-parri-card p-3 rounded-xl border border-gray-800 cursor-pointer">
+                    <input type="radio" name="carnePapa" value="Campechana" class="text-parri-orange focus:ring-0">
+                    <span class="text-sm font-bold text-gray-200">Campechana (Asada + Trompo)</span>
+                </label>
+                <label class="flex items-center space-x-3 bg-parri-card p-3 rounded-xl border border-gray-800 cursor-pointer">
+                    <input type="radio" name="carnePapa" value="Alambre" class="text-parri-orange focus:ring-0">
+                    <span class="text-sm font-bold text-gray-200">Alambre Especial</span>
+                </label>
+            `;
+
+            document.getElementById('confirmOptionBtn').onclick = function() {
+                const selected = document.querySelector('input[name="carnePapa"]:checked').value;
+                addToCart(`Papa Borracha (${selected})`, 190.00);
+                closeOptionModal();
+            };
+
+            modal.classList.remove('hidden');
+        }
+
+        function openKidsPapaModal() {
+            const modal = document.getElementById('optionModal');
+            document.getElementById('optionModalTitle').innerText = 'Mini Papa Especial';
+            document.getElementById('optionModalDesc').innerText = 'Elige el guiso para la mini papa:';
+
+            const container = document.getElementById('optionContainer');
+            container.innerHTML = `
+                <label class="flex items-center space-x-3 bg-parri-card p-3 rounded-xl border border-gray-800 cursor-pointer">
+                    <input type="radio" name="kidsPapaOpt" value="Carne Asada" checked class="text-parri-orange focus:ring-0">
+                    <span class="text-sm font-bold text-gray-200">Con Carne Asada</span>
+                </label>
+                <label class="flex items-center space-x-3 bg-parri-card p-3 rounded-xl border border-gray-800 cursor-pointer">
+                    <input type="radio" name="kidsPapaOpt" value="Trompo" class="text-parri-orange focus:ring-0">
+                    <span class="text-sm font-bold text-gray-200">Con Trompo</span>
+                </label>
+                <label class="flex items-center space-x-3 bg-parri-card p-3 rounded-xl border border-gray-800 cursor-pointer">
+                    <input type="radio" name="kidsPapaOpt" value="Campechana" class="text-parri-orange focus:ring-0">
+                    <span class="text-sm font-bold text-gray-200">Campechana</span>
+                </label>
+            `;
+
+            document.getElementById('confirmOptionBtn').onclick = function() {
+                const selected = document.querySelector('input[name="kidsPapaOpt"]:checked').value;
+                addToCart(`Mini Papa c/ ${selected}`, 80.00);
+                closeOptionModal();
+            };
+
+            modal.classList.remove('hidden');
+        }
+
+        function openCustomComboModal() {
+            const modal = document.getElementById('optionModal');
+            document.getElementById('optionModalTitle').innerText = 'COMBO 2 - Elige tu Hamburguesa';
+            document.getElementById('optionModalDesc').innerText = 'Incluye Papas a la francesa y Refresco:';
+
+            const container = document.getElementById('optionContainer');
+            container.innerHTML = `
+                <label class="flex items-center space-x-3 bg-parri-card p-3 rounded-xl border border-gray-800 cursor-pointer">
+                    <input type="radio" name="combo2Opt" value="Norteña" checked class="text-parri-orange focus:ring-0">
+                    <span class="text-sm font-bold text-gray-200">Hamb. Norteña</span>
+                </label>
+                <label class="flex items-center space-x-3 bg-parri-card p-3 rounded-xl border border-gray-800 cursor-pointer">
+                    <input type="radio" name="combo2Opt" value="Campechana" class="text-parri-orange focus:ring-0">
+                    <span class="text-sm font-bold text-gray-200">Hamb. Campechana</span>
+                </label>
+                <label class="flex items-center space-x-3 bg-parri-card p-3 rounded-xl border border-gray-800 cursor-pointer">
+                    <input type="radio" name="combo2Opt" value="Trompoburguer" class="text-parri-orange focus:ring-0">
+                    <span class="text-sm font-bold text-gray-200">Trompoburguer</span>
+                </label>
+                <label class="flex items-center space-x-3 bg-parri-card p-3 rounded-xl border border-gray-800 cursor-pointer">
+                    <input type="radio" name="combo2Opt" value="Salchiburguer" class="text-parri-orange focus:ring-0">
+                    <span class="text-sm font-bold text-gray-200">Salchiburguer</span>
+                </label>
+                <label class="flex items-center space-x-3 bg-parri-card p-3 rounded-xl border border-gray-800 cursor-pointer">
+                    <input type="radio" name="combo2Opt" value="Hawaiana" class="text-parri-orange focus:ring-0">
+                    <span class="text-sm font-bold text-gray-200">Hamb. Hawaiana</span>
+                </label>
+                <label class="flex items-center space-x-3 bg-parri-card p-3 rounded-xl border border-gray-800 cursor-pointer">
+                    <input type="radio" name="combo2Opt" value="Doble" class="text-parri-orange focus:ring-0">
+                    <span class="text-sm font-bold text-gray-200">Hamb. Doble</span>
+                </label>
+            `;
+
+            document.getElementById('confirmOptionBtn').onclick = function() {
+                const selected = document.querySelector('input[name="combo2Opt"]:checked').value;
+                addToCart(`Combo 2: Hamb. ${selected} + Papas + Refresco`, 150.00);
+                closeOptionModal();
+            };
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeOptionModal() {
+            document.getElementById('optionModal').classList.add('hidden');
+        }
+
+        // --- MANEJO DEL CARRITO ---
+        function addToCart(name, price) {
+            const existingIndex = cart.findIndex(item => item.name === name);
+
+            if (existingIndex > -1) {
+                cart[existingIndex].qty += 1;
+            } else {
+                cart.push({ name, price, qty: 1 });
+            }
+
+            updateCartUI();
+            
+            // Efecto de notificación suave
+            const badge = document.getElementById('cartCountBadge');
+            badge.classList.add('scale-125');
+            setTimeout(() => badge.classList.remove('scale-125'), 200);
+        }
+
+        function updateCartQty(index, delta) {
+            cart[index].qty += delta;
+            if (cart[index].qty <= 0) {
+                cart.splice(index, 1);
+            }
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const cartItemsList = document.getElementById('cartItemsList');
+            const cartCountBadge = document.getElementById('cartCountBadge');
+            const cartTotalPrice = document.getElementById('cartTotalPrice');
+
+            let total = 0;
+            let totalCount = 0;
+
+            cartItemsList.innerHTML = '';
+
+            if (cart.length === 0) {
+                cartItemsList.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fa-solid fa-basket-shopping text-3xl mb-2"></i>
+                        <p class="text-sm">Tu pedido está vacío.</p>
+                        <p class="text-xs text-gray-600 mt-1">¡Agrega unos deliciosos tacos al carbón!</p>
+                    </div>
+                `;
+            } else {
+                cart.forEach((item, index) => {
+                    const subtotal = item.price * item.qty;
+                    total += subtotal;
+                    totalCount += item.qty;
+
+                    const row = document.createElement('div');
+                    row.className = "flex items-center justify-between bg-parri-black p-3 rounded-xl border border-gray-800";
+                    row.innerHTML = `
+                        <div class="flex-1 pr-2">
+                            <div class="text-sm font-bold text-white">${item.name}</div>
+                            <div class="text-xs text-parri-yellow font-semibold">$${item.price.toFixed(2)} c/u</div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="updateCartQty(${index}, -1)" class="w-7 h-7 bg-parri-card hover:bg-gray-800 text-white rounded-lg flex items-center justify-center font-bold text-xs">-</button>
+                            <span class="text-xs font-bold text-white w-4 text-center">${item.qty}</span>
+                            <button onclick="updateCartQty(${index}, 1)" class="w-7 h-7 bg-parri-card hover:bg-gray-800 text-white rounded-lg flex items-center justify-center font-bold text-xs">+</button>
+                        </div>
+                        <div class="text-sm font-extrabold text-white ml-3 w-16 text-right">
+                            $${subtotal.toFixed(2)}
+                        </div>
+                    `;
+                    cartItemsList.appendChild(row);
+                });
+            }
+
+            cartCountBadge.innerText = totalCount;
+            cartTotalPrice.innerText = `$${total.toFixed(2)}`;
+        }
+
+        function setDeliveryType(type) {
+            deliveryType = type;
+            const btnD = document.getElementById('btnDelivery');
+            const btnP = document.getElementById('btnPickup');
+
+            if (type === 'domicilio') {
+                btnD.className = "py-2 text-xs font-bold rounded-lg border border-parri-orange bg-parri-orange text-white";
+                btnP.className = "py-2 text-xs font-bold rounded-lg border border-gray-700 bg-parri-card text-gray-300";
+                document.getElementById('clientAddress').classList.remove('hidden');
+            } else {
+                btnP.className = "py-2 text-xs font-bold rounded-lg border border-parri-orange bg-parri-orange text-white";
+                btnD.className = "py-2 text-xs font-bold rounded-lg border border-gray-700 bg-parri-card text-gray-300";
+                document.getElementById('clientAddress').classList.add('hidden');
+            }
+        }
+
+        function toggleCartModal() {
+            const modal = document.getElementById('cartModal');
+            modal.classList.toggle('hidden');
+        }
+
+        // --- ENVIAR PEDIDO A WHATSAPP ---
+        function sendWhatsApp(phoneNum) {
+            if (cart.length === 0) {
+                alert('Agrega al menos un producto a tu pedido.');
+                return;
+            }
+
+            const name = document.getElementById('clientName').value.trim() || 'Cliente';
+            const address = document.getElementById('clientAddress').value.trim();
+
+            if (deliveryType === 'domicilio' && !address) {
+                alert('Por favor ingresa tu dirección para el envío a domicilio.');
+                return;
+            }
+
+            let phone = phoneNum === 1 ? '528120357540' : '528128966112';
+
+            let msg = `🔥 *NUEVO PEDIDO - TACOS EL PARRI* 🔥\n\n`;
+            msg += `👤 *Cliente:* ${name}\n`;
+            msg += `🛵 *Modalidad:* ${deliveryType === 'domicilio' ? 'A Domicilio' : 'Pasa a Recoger'}\n`;
+            if (deliveryType === 'domicilio') {
+                msg += `📍 *Dirección:* ${address}\n`;
+            }
+            msg += `\n📋 *DETALLE DEL PEDIDO:*\n`;
+
+            let total = 0;
+            cart.forEach(item => {
+                const sub = item.price * item.qty;
+                total += sub;
+                msg += `• ${item.qty}x ${item.name} -> *$${sub.toFixed(2)}*\n`;
+            });
+
+            msg += `\n💰 *TOTAL ESTIMADO: $${total.toFixed(2)}*\n`;
+            msg += `\n¡Gracias por preferir Tacos El Parri! 🌮🔥`;
+
+            const encoded = encodeURIComponent(msg);
+            window.open(`https://wa.me/${phone}?text=${encoded}`, '_blank');
+        }
+
+        // --- FONDO ANIMADO DE CHISPAS DE FUEGO (CANVAS) ---
+        function initFireParticles() {
+            const canvas = document.getElementById('fireCanvas');
+            const ctx = canvas.getContext('2d');
+
+            let width = canvas.width = window.innerWidth;
+            let height = canvas.height = window.innerHeight;
+
+            window.addEventListener('resize', () => {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            });
+
+            const particles = [];
+            const particleCount = 45;
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    size: Math.random() * 3 + 1,
+                    speedY: Math.random() * 1.5 + 0.5,
+                    speedX: (Math.random() - 0.5) * 0.8,
+                    opacity: Math.random() * 0.8 + 0.2,
+                    color: Math.random() > 0.4 ? '#ff5500' : '#ffaa00'
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+
+                particles.forEach(p => {
+                    p.y -= p.speedY;
+                    p.x += p.speedX;
+
+                    if (p.y < -10) {
+                        p.y = height + 10;
+                        p.x = Math.random() * width;
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = p.opacity;
+                    ctx.fill();
+                });
+
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        }
+
+        // --- INICIALIZACIÓN GENERAL ---
+        window.onload = function() {
+            document.getElementById('currentYear').innerText = new Date().getFullYear();
+            checkOpeningStatus();
+            renderMenu();
+            updateCartUI();
+            initFireParticles();
+
+            // Recomprobar estado de apertura cada minuto
+            setInterval(checkOpeningStatus, 60000);
+        };
+    </script>
+</body>
+</html>
