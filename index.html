@@ -622,22 +622,30 @@
 
     let vapi = null;
     let isCalling = false;
-
-    // Inicialización del objeto global window.Vapi
-    try {
-      const VapiClass = window.Vapi || window.VapiSDK;
-      if (VapiClass) {
-        vapi = new VapiClass(PUBLIC_KEY);
-      }
-    } catch (e) {
-      console.error("Error al instanciar Vapi:", e);
-    }
-
     const button = document.getElementById('vapi-btn');
 
+    // Inicializamos Vapi de forma segura asegurando que la librería cargó
+    window.addEventListener('load', () => {
+      try {
+        const VapiClass = window.Vapi  window.default  window.vapiSDK;
+        if (typeof VapiClass === 'function') {
+          vapi = new VapiClass(PUBLIC_KEY);
+        } else if (window.vapi) {
+          vapi = window.vapi;
+        }
+      } catch (e) {
+        console.error("Error al inicializar Vapi:", e);
+      }
+    });
+
     button.addEventListener('click', async () => {
+      // Intento de respaldo si la instancia se crea al momento del clic
+      if (!vapi && window.Vapi) {
+        vapi = new window.Vapi(PUBLIC_KEY);
+      }
+
       if (!vapi) {
-        alert("El servicio de Vapi no está listo. Verifica tus credenciales.");
+        alert("El servicio de Vapi aún está cargando o las credenciales no son válidas.");
         return;
       }
 
@@ -648,38 +656,44 @@
         } catch (err) {
           console.error("Error al iniciar la llamada:", err);
           button.textContent = "START CALL 🎙️";
-          alert("No se pudo iniciar la llamada. Revisa que tus claves sean válidas.");
+          alert("No se pudo iniciar la llamada. Revisa la consola (F12).");
         }
       } else {
         vapi.stop();
       }
     });
 
-    if (vapi) {
-      vapi.on('call-start', () => {
-        isCalling = true;
-        button.textContent = "FINALIZAR LLAMADA 🛑";
-        button.style.backgroundColor = "#ff4d4d";
-        button.style.color = "#ffffff";
-      });
+    // Configurar eventos una vez que cargue o esté disponible
+    setTimeout(() => {
+      if (vapi || window.Vapi) {
+        const activeVapi = vapi || new window.Vapi(PUBLIC_KEY);
 
-      vapi.on('call-end', () => {
-        isCalling = false;
-        button.textContent = "START CALL 🎙️";
-        button.style.backgroundColor = "#fff9ea";
-        button.style.color = "#000000";
-      });
+        activeVapi.on('call-start', () => {
+          isCalling = true;
+          button.textContent = "FINALIZAR LLAMADA 🛑";
+          button.style.backgroundColor = "#ff4d4d";
+          button.style.color = "#ffffff";
+        });
 
-      vapi.on('error', (e) => {
-        console.error("Error durante la llamada:", e);
-        isCalling = false;
-        button.textContent = "START CALL 🎙️";
-        button.style.backgroundColor = "#fff9ea";
-        button.style.color = "#000000";
-      });
-    }
+        activeVapi.on('call-end', () => {
+          isCalling = false;
+          button.textContent = "START CALL 🎙️";
+          button.style.backgroundColor = "#fff9ea";
+          button.style.color = "#000000";
+        });
+
+        activeVapi.on('error', (e) => {
+          console.error("Error de Vapi:", e);
+          isCalling = false;
+          button.textContent = "START CALL 🎙️";
+          button.style.backgroundColor = "#fff9ea";
+          button.style.color = "#000000";
+        });
+      }
+    }, 1000);
 
 
+       
      
 
 
