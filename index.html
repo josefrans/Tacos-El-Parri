@@ -53,13 +53,7 @@
 
         
 
-    .vapi-container {
-      background: #fff9ea;
-      padding: 10px 25px;
-      border-radius: 40px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-     position: relative;
-    }
+   
 
         
 
@@ -173,8 +167,6 @@
 
 
 
-
- <div class="vapi-container">
 
 
 
@@ -564,39 +556,40 @@
 
 
 
-
-
  var publicKey = "18cf450c-7d12-4401-8b2a-c89e37e59025";     // Reemplaza con tu Public Key
-      var assistantId = "4b1a1ca4-a69a-49fb-8b48-5bce2711b29a"; // Reemplaza con el ID de tu Asistente
+    var assistantId = "4b1a1ca4-a69a-49fb-8b48-5bce2711b29a"; // Reemplaza con el ID de tu Asistente
 
-      (function (d, t) {
-        var g = d.createElement(t),
-            s = d.getElementsByTagName(t)[0];
-        g.src = "https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js";
-        g.defer = true;
-        g.async = true;
-        s.parentNode.insertBefore(g, s);
+    (function (d, t) {
+      var g = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      g.src = "https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js";
+      g.defer = true;
+      g.async = true;
+      s.parentNode.insertBefore(g, s);
 
-        g.onload = function () {
-          window.vapiSDK.run({
-            apiKey: publicKey,
-            assistant: assistantId,
-            config: {
-              position: "bottom-right",
-              offset: "30px",
-              width: "50px",
-              height: "50px",
-              idle: {
-                color: "rgb(13, 35, 25)", // <-- Corregido con comillas
-                type: "pill",
-                title: "START CALL",
-                subtitle: "",
-                icon: "https://unpkg.com/lucide-static@latest/icons/phone.svg",
-              }
+      g.onload = function () {
+        window.vapiSDK.run({
+          apiKey: publicKey,
+          assistant: assistantId,
+          config: {
+            // Posición fija en la parte inferior central
+            position: "bottom", 
+            offset: "20px",
+            width: "180px",
+            height: "50px",
+            idle: {
+              color: "rgb(255, 249, 234)",
+              type: "pill",
+              title: "START CALL",
+              subtitle: "",
+              icon: "https://unpkg.com/lucide-static@latest/icons/phone.svg",
             }
-          });
-        };
-      })(document, "script");
+          }
+        });
+      };
+    })(document, "script");
+
+
 
 
 
