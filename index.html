@@ -52,7 +52,40 @@
         
     /* ESTILO CLAVE: Fuerza al botón de Vapi a quedarse pegado a la pantalla de forma fija (fixed) 
        y con un z-index alto para que nunca se oculte ni se esconda detrás del contenido. */
-  
+   #vapi-floating-container {
+      position: fixed; /* Se queda congelado en la pantalla sin moverse al escrolear */
+      bottom: 30px;    /* Distancia desde abajo */
+      right: 30px;     /* Distancia desde la derecha */
+      z-index: 999999; /* Siempre por encima del contenido de la web */
+    }
+
+    /* ESTILO DEL BOTÓN PERSONALIZADO */
+    .vapi-custom-btn {
+      background-color: #fff9ea;
+      color: #000;
+      border: 2px solid #ffffff;
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: transform 0.2s, background-color 0.2s;
+    }
+
+    .vapi-custom-btn:hover {
+      transform: scale(1.05);
+      background-color: #ffffff;
+    }
+
+    .vapi-custom-btn:active {
+      transform: scale(0.95);
+    }
+
+        
 
    
 
@@ -357,12 +390,11 @@
 
 
 
- <div id="vapi-floating-container">
+<div id="vapi-floating-container">
     <button id="vapi-btn" class="vapi-custom-btn">
-      LLAMAR 🎙️
+      START CALL 🎙️
     </button>
   </div>
-
 
 
         
@@ -578,15 +610,16 @@
     <script>
 
 
-const PUBLIC_KEY = "18cf450c-7d12-4401-8b2a-c89e37e59025";       // Reemplaza por tu Public Key
+import Vapi from 'https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/index.mjs';
+
+    const PUBLIC_KEY = "18cf450c-7d12-4401-8b2a-c89e37e59025";       // Reemplaza por tu Public Key
     const ASSISTANT_ID = "4b1a1ca4-a69a-49fb-8b48-5bce2711b29a";   // Reemplaza por tu Assistant ID
 
     let vapi = null;
     let isCalling = false;
 
-    // Inicializamos Vapi de forma segura
     try {
-      vapi = new Vapi.default(PUBLIC_KEY);
+      vapi = new Vapi(PUBLIC_KEY);
     } catch (e) {
       console.error("Error al cargar Vapi:", e);
     }
@@ -605,7 +638,7 @@ const PUBLIC_KEY = "18cf450c-7d12-4401-8b2a-c89e37e59025";       // Reemplaza po
           await vapi.start(ASSISTANT_ID);
         } catch (err) {
           console.error("Error en la llamada:", err);
-          button.textContent = "LLAMAR🎙️";
+          button.textContent = "START CALL 🎙️";
         }
       } else {
         vapi.stop();
@@ -622,7 +655,7 @@ const PUBLIC_KEY = "18cf450c-7d12-4401-8b2a-c89e37e59025";       // Reemplaza po
 
       vapi.on('call-end', () => {
         isCalling = false;
-        button.textContent = "LLAMAR 🎙️";
+        button.textContent = "START CALL 🎙️";
         button.style.backgroundColor = "#fff9ea";
         button.style.color = "#000000";
       });
@@ -630,13 +663,11 @@ const PUBLIC_KEY = "18cf450c-7d12-4401-8b2a-c89e37e59025";       // Reemplaza po
       vapi.on('error', (e) => {
         console.error("Error de Vapi:", e);
         isCalling = false;
-        button.textContent = "LLAMAR 🎙️";
+        button.textContent = "START CALL 🎙️";
         button.style.backgroundColor = "#fff9ea";
         button.style.color = "#000000";
       });
     }
-
-
 
 
 
