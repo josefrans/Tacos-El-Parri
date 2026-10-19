@@ -50,7 +50,16 @@
 
 
         
-
+    /* ESTILO CLAVE: Fuerza al botón de Vapi a quedarse pegado a la pantalla de forma fija (fixed) 
+       y con un z-index alto para que nunca se oculte ni se esconda detrás del contenido. */
+    vapi-chatbot-button, 
+    div[id*="vapi-support-btn"], 
+    iframe[src*="vapi"] {
+      position: fixed !important;
+      bottom: 30px !important;
+      right: 30px !important;
+      z-index: 2147483647 !important; /* El valor máximo permitido para que esté siempre al frente */
+    }
         
 
    
@@ -572,15 +581,15 @@
           apiKey: publicKey,
           assistant: assistantId,
           config: {
-            // Posición fija en la parte inferior central
-            position: "fixed", 
-            offset: "20px",
-            width: "180px",
+            position: "bottom-right",
+            position: "fixed",
+            offset: "0px",
+            width: "50px",
             height: "50px",
             idle: {
               color: "rgb(255, 249, 234)",
               type: "pill",
-              title: "START CALL",
+              title: "LLAMAR",
               subtitle: "",
               icon: "https://unpkg.com/lucide-static@latest/icons/phone.svg",
             }
