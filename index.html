@@ -618,52 +618,38 @@
 
 
 
-         // Coloca aquí tus credenciales exactas de Vapi:
-    const PUBLIC_KEY = "18cf450c-7d12-4401-8b2a-c89e37e59025";       
-    const ASSISTANT_ID = "4b1a1ca4-a69a-49fb-8b48-5bce2711b29a";   
+      var publicKey = "18cf450c-7d12-4401-8b2a-c89e37e59025";     // Reemplaza con tu Public Key
+      var assistantId = "4b1a1ca4-a69a-49fb-8b48-5bce2711b29a"; // Reemplaza con el ID de tu Asistente
 
-    let vapi = null;
-    let isCalling = false;
-    const button = document.getElementById('vapi-btn');
+      (function (d, t) {
+        var g = d.createElement(t),
+            s = d.getElementsByTagName(t)[0];
+        g.src = "https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js";
+        g.defer = true;
+        g.async = true;
+        s.parentNode.insertBefore(g, s);
 
-    // Inicializamos Vapi de forma segura asegurando que la librería cargó
-    window.addEventListener('load', () => {
-      try {
-        const VapiClass = window.Vapi  window.default  window.vapiSDK;
-        if (typeof VapiClass === 'function') {
-          vapi = new VapiClass(PUBLIC_KEY);
-        } else if (window.vapi) {
-          vapi = window.vapi;
-        }
-      } catch (e) {
-        console.error("Error al inicializar Vapi:", e);
-      }
-    });
-
-    button.addEventListener('click', async () => {
-      // Intento de respaldo si la instancia se crea al momento del clic
-      if (!vapi && window.Vapi) {
-        vapi = new window.Vapi(PUBLIC_KEY);
-      }
-
-      if (!vapi) {
-        alert("El servicio de Vapi aún está cargando o las credenciales no son válidas.");
-        return;
-      }
-
-      if (!isCalling) {
-        button.textContent = "CONECTANDO...";
-        try {
-          await vapi.start(ASSISTANT_ID);
-        } catch (err) {
-          console.error("Error al iniciar la llamada:", err);
-          button.textContent = "START CALL 🎙️";
-          alert("No se pudo iniciar la llamada. Revisa la consola (F12).");
-        }
-      } else {
-        vapi.stop();
-      }
-    });
+        g.onload = function () {
+          window.vapiSDK.run({
+            apiKey: publicKey,
+            assistant: assistantId,
+            config: {
+              position: "bottom-right",
+              offset: "30px",
+              width: "50px",
+              height: "50px",
+              idle: {
+                color: "rgb(13, 35, 25)", // <-- Corregido con comillas
+                type: "pill",
+                title: "START CALL",
+                subtitle: "",
+                icon: "https://unpkg.com/lucide-static@latest/icons/phone.svg",
+              }
+            }
+          });
+        };
+      })(document, "script");
+    
 
     // Configurar eventos una vez que cargue o esté disponible
     setTimeout(() => {
