@@ -52,15 +52,7 @@
         
     /* ESTILO CLAVE: Fuerza al botón de Vapi a quedarse pegado a la pantalla de forma fija (fixed) 
        y con un z-index alto para que nunca se oculte ni se esconda detrás del contenido. */
-    vapi-chatbot-button, 
-    div[id*="vapi-support-btn"], 
-    iframe[src*="vapi"] {
-      position: fixed !important;
-      bottom: 30px !important;
-      right: 30px !important;
-      z-index: 2147483647 !important; /* El valor máximo permitido para que esté siempre al frente */
-    }
-        
+  
 
    
 
@@ -150,6 +142,15 @@
     <meta property="og:type" content="website" />
 </head>
 <body class="relative min-h-screen pb-24">
+
+
+
+
+     <div id="vapi-floating-container">
+    <button id="vapi-btn" class="vapi-custom-btn">
+      LLAMAR 🎙️
+    </button>
+  </div>
 
 
     
@@ -566,40 +567,64 @@
     <script>
 
 
+const PUBLIC_KEY = "18cf450c-7d12-4401-8b2a-c89e37e59025";       // Reemplaza por tu Public Key
+    const ASSISTANT_ID = "4b1a1ca4-a69a-49fb-8b48-5bce2711b29a";   // Reemplaza por tu Assistant ID
 
+    let vapi = null;
+    let isCalling = false;
 
- var publicKey = "18cf450c-7d12-4401-8b2a-c89e37e59025";     // Reemplaza con tu Public Key
-    var assistantId = "4b1a1ca4-a69a-49fb-8b48-5bce2711b29a"; // Reemplaza con el ID de tu Asistente
+    // Inicializamos Vapi de forma segura
+    try {
+      vapi = new Vapi.default(PUBLIC_KEY);
+    } catch (e) {
+      console.error("Error al cargar Vapi:", e);
+    }
 
-    (function (d, t) {
-      var g = d.createElement(t),
-          s = d.getElementsByTagName(t)[0];
-      g.src = "https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js";
-      g.defer = true;
-      g.async = true;
-      s.parentNode.insertBefore(g, s);
+    const button = document.getElementById('vapi-btn');
 
-      g.onload = function () {
-        window.vapiSDK.run({
-          apiKey: publicKey,
-          assistant: assistantId,
-          config: {
-            
-            position: "bottom-right",
-            offset: "0px",
-            width: "50px",
-            height: "50px",
-            idle: {
-              color: "rgb(255, 249, 234)",
-              type: "pill",
-              title: "LLAMAR",
-              subtitle: "",
-              icon: "https://unpkg.com/lucide-static@latest/icons/phone.svg",
-            }
-          }
-        });
-      };
-    })(document, "script");
+    button.addEventListener('click', async () => {
+      if (!vapi) {
+        alert("El servicio de voz no se cargó correctamente.");
+        return;
+      }
+
+      if (!isCalling) {
+        button.textContent = "CONECTANDO...";
+        try {
+          await vapi.start(ASSISTANT_ID);
+        } catch (err) {
+          console.error("Error en la llamada:", err);
+          button.textContent = "LLAMAR🎙️";
+        }
+      } else {
+        vapi.stop();
+      }
+    });
+
+    if (vapi) {
+      vapi.on('call-start', () => {
+        isCalling = true;
+        button.textContent = "FINALIZAR LLAMADA 🛑";
+        button.style.backgroundColor = "#ff4d4d";
+        button.style.color = "#ffffff";
+      });
+
+      vapi.on('call-end', () => {
+        isCalling = false;
+        button.textContent = "START CALL 🎙️";
+        button.style.backgroundColor = "#fff9ea";
+        button.style.color = "#000000";
+      });
+
+      vapi.on('error', (e) => {
+        console.error("Error de Vapi:", e);
+        isCalling = false;
+        button.textContent = "LLAMAR 🎙️";
+        button.style.backgroundColor = "#fff9ea";
+        button.style.color = "#000000";
+      });
+    }
+
 
 
 
