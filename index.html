@@ -55,41 +55,14 @@
     /* ESTILO CLAVE: Fuerza al botón de Vapi a quedarse pegado a la pantalla de forma fija (fixed) 
        y con un z-index alto para que nunca se oculte ni se esconda detrás del contenido. */
    /* CONTENEDOR ESTÁTICO Y FLOTANTE QUE YA TE FUNCIONÓ PERFECTO */
-    .vapi-container {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      z-index: 999999;
+    
+ .vapi-container {
+      background: #fff9ea;
+      padding: 10px 25px;
+      border-radius: 40px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      position: relative;
     }
-
-    /* ESTILO DEL BOTÓN PERSONALIZADO */
-    .vapi-container{
-      background-color: #fff9ea;
-      color: #000;
-      border: 2px solid #ffffff;
-      padding: 14px 28px;
-      font-size: 16px;
-      font-weight: bold;
-      border-radius: 50px;
-      cursor: pointer;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: transform 0.2s, background-color 0.2s;
-    }
-
-    .vapi-custom-btn:hover {
-      transform: scale(1.05);
-      background-color: #ffffff;
-    }
-
-    .vapi-custom-btn:active {
-      transform: scale(0.95);
-    }
-
-        
-
    
 
         
@@ -395,7 +368,7 @@
 
  <!-- CONTENEDOR HTML FIJO EN LA ESQUINA INFERIOR DERECHA -->
 
-<div class="vapi-container">
+<div class="vapi-container"> 
         
 
         <!-- Filtros de Menú e Interactividad -->
